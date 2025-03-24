@@ -1,6 +1,8 @@
 import os
 import requests
 
+from .save_expo_tokens import save_expo_tokens
+
 
 def send_expo_notifications(data):
     """ todo """
@@ -27,7 +29,9 @@ def send_expo_notifications(data):
         "data": notification.get('data')
     }
 
-    response = requests.post(EXPO_PUSH_URL, json=data, headers=HEADERS).json()
+    # response = requests.post(EXPO_PUSH_URL, json=data, headers=HEADERS).json()
+
+    # print(response)
 
     # TODO: Maybe save receipts / id, and have another process that confirms that receipts were sent successfully?
     # if not successfull, maybe remove expo push token from db or make a list of expo push tokens that are
@@ -44,23 +48,23 @@ def send_expo_notifications(data):
     return True
 
 
-def get_expo_push_tokens(data):
+def get_expo_push_tokens(project):
     """ Fetches a list of expo push tokens from a given endpoint. """
 
-    TOKEN = ""
+    TOKEN = "todo"
     HEADERS = {
         'Authorization': f'Bearer {TOKEN}',
         'Content-Type': 'application/json'
     }
-    URL = f"{data.get('base_url')}/{data.get('fetch_expo_tokens_api')}"
+    URL = f"{project.get('base_url')}/{project.get('fetch_expo_tokens_api')}"
 
-    print(data)
-    print('URL')
-    print(URL)
+    response = requests.get(URL, headers=HEADERS).json()
+    maybe_expo_tokens = response.get('data')
 
-    # response = requests.get(URL, headers=HEADERS)
+    if maybe_expo_tokens:
+        return save_expo_tokens(project.get('name'), maybe_expo_tokens)
 
-    return True
+    return False
 
 
 def get_expo_push_receipts(self, url):
