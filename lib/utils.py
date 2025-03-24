@@ -96,8 +96,31 @@ def calculate_request_time(start_time, to_print=False):
 
 
 def generate_random_code(length=5):
+
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
+
+
+def get_datetime():
+    """ Returns date time """
+
+    now = datetime.datetime.now()
+
+    return {
+        'day_num': now.day,  # Day of the month
+        'date_now_full': now,  # Full datetime object
+        'date_year': now.year,  # Year
+        'day_month_num': now.month,  # Month number
+        'current_time': now.time(),  # Current time object
+        'timestamp': now.timestamp(),  # Unix timestamp
+        'date_now': now.strftime('%Y-%m-%d'),  # Date in YYYY-MM-DD format
+        'date_time': now.strftime('%H:%M:%S'),  # Time in HH:MM:SS format
+        'date_time_now': now.strftime('%Y-%m-%d %H:%M:%S'),  # Date in YYYY-MM-DD format # nopep8
+        'day_name': calendar.day_name[now.weekday()],  # Day of the week
+        'day_month_name': calendar.month_name[now.month],  # Month name
+
+
+    }
 
 
 if __name__ == "__main__":
