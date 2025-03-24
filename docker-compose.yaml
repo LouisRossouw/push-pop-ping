@@ -1,0 +1,8 @@
+services:
+  ping-app:
+    image: push-pop-ping
+    volumes:
+      - ./data:/app/data
+      - ./lib:/app/lib
+      - /app/venv
+    restart: unless-stopped
