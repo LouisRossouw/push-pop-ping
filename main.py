@@ -36,12 +36,14 @@ def set_schedules(function, schedules):
     """ Builds and Sets the shedules. """
 
     for schedule in schedules:
-        build_schedules(
-            function,
-            schedule,
-            schedule.get('interval', 1),
-            schedule.get('interval_type', "days")
-        )
+        print(schedule.get('active'))
+        if schedule.get('active'):
+            build_schedules(
+                function,
+                schedule,
+                schedule.get('interval', 1),
+                schedule.get('interval_type', "days")
+            )
 
 
 def build_schedules(function, data, interval, interval_type):
@@ -65,7 +67,7 @@ def fetch_expo_tokens(data):
     result = ER.get_expo_push_tokens(data)
     res_time = utils.calculate_request_time(start_time)
 
-    print('--- Sent', res_time)
+    print('--- fetch_expo_tokens', res_time)
 
 
 def send_push_notification(schedule):
@@ -75,7 +77,7 @@ def send_push_notification(schedule):
     result = ER.send_expo_notifications(schedule)
     res_time = utils.calculate_request_time(start_time)
 
-    print('--- Sent', res_time)
+    print('--- send_push_notification', res_time)
 
 
 if __name__ == "__main__":
