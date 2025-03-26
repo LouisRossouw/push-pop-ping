@@ -16,13 +16,13 @@ main_interval = main_config.get('interval_seconds', 20)
 
 def run():
     # Set schedules for Fetch expo push tokens.
-    set_schedules(fetch_expo_tokens, projects)
+    set_schedules(fetch_expo_tokens, schedules=projects)
 
     # Set schedules for Send Notifications.
     for project in projects:
 
-        name = project.get("name")
-        notification_list = notifications.get(name)
+        project_name = project.get("name")
+        notification_list = notifications.get(project_name)
 
         if notification_list:
             set_schedules(send_push_notification, notification_list)
@@ -68,11 +68,11 @@ def fetch_expo_tokens(data):
     print('--- Sent', res_time)
 
 
-def send_push_notification(data):
+def send_push_notification(schedule):
     """ Sends expo push notifications. """
 
     start_time = utils.start_time()
-    result = ER.send_expo_notifications(data)
+    result = ER.send_expo_notifications(schedule)
     res_time = utils.calculate_request_time(start_time)
 
     print('--- Sent', res_time)
