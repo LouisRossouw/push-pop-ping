@@ -21,7 +21,7 @@ def save_expo_tokens(name, tokens):
     file_path = os.path.join(tokens_dir, json_name)
 
     data = {
-        "last_updated_timestamp": current_date.get('timestamp'),
+        "timestamp": current_date.get('timestamp'),
         "last_updated": current_date.get('date_time_now'),
         "expo_push_tokens": tokens
     }
