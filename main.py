@@ -4,6 +4,7 @@ from time import sleep
 
 import lib.utils as utils
 import lib.expo_requests as ER
+from lib.save_data import save_data
 
 root_dir = os.path.dirname(__file__)
 
@@ -69,6 +70,9 @@ def fetch_expo_tokens(data):
 
     print('--- fetch_expo_tokens', res_time)
 
+    save_data('fetch_expo_tasks_results', data.get('name'), {
+              "res_time": res_time, "result": result})
+
 
 def send_push_notification(schedule):
     """ Sends expo push notifications. """
@@ -78,6 +82,9 @@ def send_push_notification(schedule):
     res_time = utils.calculate_request_time(start_time)
 
     print('--- send_push_notification', res_time)
+
+    save_data('notifications_results', schedule.get('name'), {
+              "res_time": res_time, "result": result})
 
 
 if __name__ == "__main__":
