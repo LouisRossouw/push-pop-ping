@@ -1,9 +1,9 @@
 import os
 import json
 import requests
+from dotenv import load_dotenv
 
 from .get_users import get_users
-from dotenv import load_dotenv
 from .save_expo_tokens import save_expo_tokens
 
 load_dotenv()
@@ -57,7 +57,7 @@ def send_expo_notifications(schedule):
     # if not successfull, maybe remove expo push token from db or make a list of expo push tokens that are
     # inactive and remove them eventually
 
-    return True
+    return {"success": True, "results": "todo"}
 
 
 def get_expo_push_tokens(project):
@@ -76,7 +76,7 @@ def get_expo_push_tokens(project):
     if maybe_expo_tokens:
         return save_expo_tokens(project.get('name'), maybe_expo_tokens)
 
-    return False
+    return {"success": True, "results": "todo"}
 
 
 def get_expo_push_receipts(self, url):
