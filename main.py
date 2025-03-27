@@ -37,7 +37,6 @@ def set_schedules(function, schedules):
     """ Builds and Sets the shedules. """
 
     for schedule in schedules:
-        print(schedule.get('active'))
         if schedule.get('active'):
             build_schedules(
                 function,
@@ -65,26 +64,58 @@ def fetch_expo_tokens(data):
     """ Fetches expo tokens from endpoints, and saves them to a json file. """
 
     start_time = utils.start_time()
-    result = ER.get_expo_push_tokens(data)
+    success, result = ER.get_expo_push_tokens(data)
     res_time = utils.calculate_request_time(start_time)
 
     print('--- fetch_expo_tokens', res_time)
 
-    save_data('fetch_expo_tasks_results', data.get('name'), {
-              "res_time": res_time, "result": result})
+    if success:
+        save_data(
+            'fetch_expo_tasks_results',
+            data.get('name'),
+            {
+                'task': "fetch_expo_tokens",
+                "res_time": res_time,
+                "result": result
+            }
+        )
 
 
 def send_push_notification(schedule):
     """ Sends expo push notifications. """
 
     start_time = utils.start_time()
-    result = ER.send_expo_notifications(schedule)
+    success, result = ER.send_expo_notifications(schedule)
     res_time = utils.calculate_request_time(start_time)
 
     print('--- send_push_notification', res_time)
 
-    save_data('notifications_results', schedule.get('name'), {
-              "res_time": res_time, "result": result})
+    if success:
+        reciepts = result.get('data')
+
+        ok_status_count = 0
+        ok_status_count_total = len(reciepts)
+
+        for reciept in reciepts:
+            if reciept.get('status') == 'ok':
+                ok_status_count += 1
+
+        save_data(
+            'notifications_results',
+            schedule.get('name'),
+            {
+                'task': "send_push_notification",
+                "res_time": res_time,
+                "result": {
+                    "success_sent_notifications": ok_status_count,
+                    "success_sent_notifications_total": ok_status_count_total
+                }
+            }
+        )
+
+    # TODO: Maybe save receipts / id, and have another process that confirms that receipts were sent successfully?
+    # if not successfull, maybe remove expo push token from db or make a list of expo push tokens that are
+    # inactive and remove them eventually
 
 
 if __name__ == "__main__":

@@ -49,15 +49,7 @@ def send_expo_notifications(schedule):
 
     response = requests.post(EXPO_PUSH_URL, headers=HEADERS, data=data)
 
-    print(response.json())
-    # response:
-    # {'data': [{'status': 'ok', 'id': 'xxxx-xxx-xxx-xxxx'}]}
-
-    # TODO: Maybe save receipts / id, and have another process that confirms that receipts were sent successfully?
-    # if not successfull, maybe remove expo push token from db or make a list of expo push tokens that are
-    # inactive and remove them eventually
-
-    return {"success": True, "results": "todo"}
+    return True, response.json()
 
 
 def get_expo_push_tokens(project):
@@ -76,7 +68,7 @@ def get_expo_push_tokens(project):
     if maybe_expo_tokens:
         return save_expo_tokens(project.get('name'), maybe_expo_tokens)
 
-    return {"success": True, "results": "todo"}
+    return True, "todo"
 
 
 def get_expo_push_receipts(self, url):
