@@ -4,6 +4,7 @@ from time import sleep
 
 import lib.utils as utils
 import lib.expo_requests as ER
+from lib.save_data import save_data
 
 root_dir = os.path.dirname(__file__)
 
@@ -16,13 +17,13 @@ main_interval = main_config.get('interval_seconds', 20)
 
 def run():
     # Set schedules for Fetch expo push tokens.
-    set_schedules(fetch_expo_tokens, projects)
+    set_schedules(fetch_expo_tokens, schedules=projects)
 
     # Set schedules for Send Notifications.
     for project in projects:
 
-        name = project.get("name")
-        notification_list = notifications.get(name)
+        project_name = project.get("name")
+        notification_list = notifications.get(project_name)
 
         if notification_list:
             set_schedules(send_push_notification, notification_list)
@@ -36,12 +37,13 @@ def set_schedules(function, schedules):
     """ Builds and Sets the shedules. """
 
     for schedule in schedules:
-        build_schedules(
-            function,
-            schedule,
-            schedule.get('interval', 1),
-            schedule.get('interval_type', "days")
-        )
+        if schedule.get('active'):
+            build_schedules(
+                function,
+                schedule,
+                schedule.get('interval', 1),
+                schedule.get('interval_type', "days")
+            )
 
 
 def build_schedules(function, data, interval, interval_type):
@@ -62,20 +64,58 @@ def fetch_expo_tokens(data):
     """ Fetches expo tokens from endpoints, and saves them to a json file. """
 
     start_time = utils.start_time()
-    result = ER.get_expo_push_tokens(data)
+    success, result = ER.get_expo_push_tokens(data)
     res_time = utils.calculate_request_time(start_time)
 
-    print('--- Sent', res_time)
+    print('--- fetch_expo_tokens', res_time)
+
+    if success:
+        save_data(
+            'fetch_expo_tasks_results',
+            data.get('name'),
+            {
+                'task': "fetch_expo_tokens",
+                "res_time": res_time,
+                "result": result
+            }
+        )
 
 
-def send_push_notification(data):
+def send_push_notification(schedule):
     """ Sends expo push notifications. """
 
     start_time = utils.start_time()
-    result = ER.send_expo_notifications(data)
+    success, result = ER.send_expo_notifications(schedule)
     res_time = utils.calculate_request_time(start_time)
 
-    print('--- Sent', res_time)
+    print('--- send_push_notification', res_time)
+
+    if success:
+        reciepts = result.get('data')
+
+        ok_status_count = 0
+        ok_status_count_total = len(reciepts)
+
+        for reciept in reciepts:
+            if reciept.get('status') == 'ok':
+                ok_status_count += 1
+
+        save_data(
+            'notifications_results',
+            schedule.get('name'),
+            {
+                'task': "send_push_notification",
+                "res_time": res_time,
+                "result": {
+                    "success_sent_notifications": ok_status_count,
+                    "success_sent_notifications_total": ok_status_count_total
+                }
+            }
+        )
+
+    # TODO: Maybe save receipts / id, and have another process that confirms that receipts were sent successfully?
+    # if not successfull, maybe remove expo push token from db or make a list of expo push tokens that are
+    # inactive and remove them eventually
 
 
 if __name__ == "__main__":

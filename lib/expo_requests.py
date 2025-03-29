@@ -1,66 +1,74 @@
 import os
+import json
 import requests
+from dotenv import load_dotenv
+
+from .get_users import get_users
+from .save_expo_tokens import save_expo_tokens
+
+load_dotenv()
+
+EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
+
+HEADERS = {
+    "host": "exp.host",
+    "accept": "application/json",
+    "accept-encoding": "gzip, deflate",
+    "content-type": "application/json",
+}
 
 
-def send_expo_notifications(data):
-    """ todo """
+def send_expo_notifications(schedule):
+    """ Send Expo push notifications to users """
 
-    EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
+    project_name = schedule.get('name')
+    to_users = schedule.get('to_users', [""])  # anonymous / auth / is_staff
+    notification = schedule.get('notification')
 
-    HEADERS = {
-        "host": "exp.host",
-        "accept": "application/json",
-        "accept-encoding": "gzip, deflate",
-        "content-type": "application/json",
-    }
-
-    to_users = data.get('to_users')
-    notification = data.get('notification')
+    users = get_users(project_name, to_users[0])
 
     # TODO: Get a list of expo push tokens that were saved locally (maybe direct from server?) in .json
     # Filter out tokens based on the to_users values.
 
-    data = {
-        "to": "TODO",
-        "title": notification.get('title'),
-        "body": notification.get('body'),
-        "data": notification.get('data')
-    }
+    # TODO: Calculate total users and plit them up
+    # into multiple requests; Expo allows sending up 100 notifications per request.
 
-    response = requests.post(EXPO_PUSH_URL, json=data, headers=HEADERS).json()
+    # TODO: How to send personalized notifications to specific users?
 
-    # TODO: Maybe save receipts / id, and have another process that confirms that receipts were sent successfully?
-    # if not successfull, maybe remove expo push token from db or make a list of expo push tokens that are
-    # inactive and remove them eventually
+    expo_push_tokens_list = []
 
-    # response:
-    # {
-    # 	"data": {
-    # 		"status": "ok",
-    # 		"id": "xxxxxxxc-xxxx-xxxx-xxx-xxxxxxxxxx"
-    # 	}
-    # }
+    for user in users:
+        expo_push_tokens_list.append(user.get('token'))
 
-    return True
+    data = json.dumps({
+        "to": expo_push_tokens_list,
+        "title": notification.get("title"),
+        "body": notification.get("body"),
+        "data": notification.get("data"),
+    })
+
+    response = requests.post(EXPO_PUSH_URL, headers=HEADERS, data=data)
+
+    return True, response.json()
 
 
-def get_expo_push_tokens(data):
+def get_expo_push_tokens(project):
     """ Fetches a list of expo push tokens from a given endpoint. """
 
-    TOKEN = ""
+    TOKEN = os.getenv('TEMP_ACCESS_TOKEN')
     HEADERS = {
         'Authorization': f'Bearer {TOKEN}',
         'Content-Type': 'application/json'
     }
-    URL = f"{data.get('base_url')}/{data.get('fetch_expo_tokens_api')}"
+    URL = f"{project.get('base_url')}/{project.get('fetch_expo_tokens_api')}"
 
-    print(data)
-    print('URL')
-    print(URL)
+    response = requests.get(URL, headers=HEADERS).json()
+    maybe_expo_tokens = response.get('data')
 
-    # response = requests.get(URL, headers=HEADERS)
+    if maybe_expo_tokens:
+        return save_expo_tokens(project.get('name'), maybe_expo_tokens)
 
-    return True
+    return True, "todo"
 
 
 def get_expo_push_receipts(self, url):
