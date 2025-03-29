@@ -1,10 +1,12 @@
 import os
+import asyncio
 import schedule
 from time import sleep
 
 import lib.utils as utils
 import lib.expo_requests as ER
 from lib.save_data import save_data
+from lib.session import check_auth_tokens
 
 root_dir = os.path.dirname(__file__)
 
@@ -118,12 +120,18 @@ def send_push_notification(schedule):
     # inactive and remove them eventually
 
 
+async def main():
+    # Before running, check if tokens are expired.
+    await asyncio.create_task(check_auth_tokens())
+
+    # while True:
+    #     try:
+    #         run()
+    #     except Exception as e:
+    #         print(e)
+    #         sleep(60)
+
+
 if __name__ == "__main__":
     print('starting..')
-
-    while True:
-        try:
-            run()
-        except Exception as e:
-            print(e)
-            sleep(60)
+    asyncio.run(main())
